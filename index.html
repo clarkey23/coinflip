@@ -48,6 +48,7 @@
             padding: 20px;
             border: 1px solid var(--border-color);
             border-radius: 4px;
+            position: relative;
         }
 
         .history-section {
@@ -396,6 +397,16 @@
                 width: 100%;
                 margin-top: 10px;
             }
+
+            .chart-container {
+                height: 250px;
+                padding: 10px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
         }
 
         .info-box {
@@ -501,6 +512,8 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
             margin-bottom: 20px;
+            width: 100%;
+            height: 300px;
         }
 
         .end-game-button {
@@ -522,6 +535,72 @@
             background-color: #ff4444;
             color: var(--bg-color);
         }
+
+        .hacks-button {
+            background-color: var(--bg-color);
+            color: #ff00ff;
+            padding: 5px 10px;
+            font-size: 0.8em;
+            border: 1px solid #ff00ff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .hacks-button:hover {
+            background-color: #ff00ff;
+            color: var(--bg-color);
+        }
+
+        .hacks-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hacks-modal.active {
+            display: flex;
+        }
+
+        .hacks-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .hack-item {
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--input-bg);
+        }
+
+        .hack-item:hover {
+            border-color: #ff00ff;
+            color: #ff00ff;
+        }
+
+        .hack-item.active {
+            border-color: #ff00ff;
+            color: #ff00ff;
+            background: rgba(255, 0, 255, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -535,6 +614,7 @@
     <div class="game-container" id="gameContainer">
         <div class="container">
             <div class="game-section">
+                <button class="hacks-button" id="hacksButton">Unlock Hacks</button>
                 <div class="timer" id="timer">30:00</div>
                 <div class="stats-container">
                     <div class="stat-box">
@@ -608,6 +688,15 @@
             <canvas id="balanceChart"></canvas>
         </div>
     </div>
+    <div class="hacks-modal" id="hacksModal">
+        <div class="modal-content">
+            <button class="modal-close" id="hacksClose">&times;</button>
+            <h2>Hacks</h2>
+            <ul class="hacks-list">
+                <li class="hack-item" id="optimalStrategyHack">Simulate Optimal Strategy (20%)</li>
+            </ul>
+        </div>
+    </div>
     <script>
         let balance = 25;
         let timeLeft = 30 * 60;
@@ -617,6 +706,8 @@
         let balanceHistory = [25];
         let flipHistory = [];
         let chart = null;
+        let simulationActive = false;
+        let simulationInterval = null;
 
         const balanceDisplay = document.getElementById('balance');
         const betInput = document.getElementById('betAmount');
@@ -637,6 +728,10 @@
         const totalFlipsFinal = document.getElementById('totalFlipsFinal');
         const winRate = document.getElementById('winRate');
         const bestBalanceFinal = document.getElementById('bestBalanceFinal');
+        const hacksButton = document.getElementById('hacksButton');
+        const hacksModal = document.getElementById('hacksModal');
+        const hacksClose = document.getElementById('hacksClose');
+        const optimalStrategyHack = document.getElementById('optimalStrategyHack');
 
         // Close info box when clicking the close button
         infoClose.addEventListener('click', () => {
@@ -723,6 +818,7 @@
         }
 
         function showEndGameScreen() {
+            stopSimulation();
             gameActive = false;
             gameContainer.classList.add('hidden');
             endGameScreen.classList.add('active');
@@ -730,7 +826,9 @@
             // Update stats
             finalBalance.textContent = `$${balance.toFixed(2)}`;
             totalFlipsFinal.textContent = headsCount + tailsCount;
-            winRate.textContent = `${((headsCount / (headsCount + tailsCount)) * 100).toFixed(1)}%`;
+            const totalFlips = headsCount + tailsCount;
+            const headsPercentage = ((headsCount / totalFlips) * 100).toFixed(1);
+            winRate.textContent = `Heads: ${headsPercentage}% | Tails: ${(100 - headsPercentage).toFixed(1)}%`;
             bestBalanceFinal.textContent = `$${Math.max(...balanceHistory).toFixed(2)}`;
 
             // Create chart
@@ -769,20 +867,23 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         title: {
                             display: true,
                             text: 'Balance Over Time',
                             color: '#e0e0e0',
                             font: {
-                                family: 'JetBrains Mono'
+                                family: 'JetBrains Mono',
+                                size: window.innerWidth < 768 ? 12 : 14
                             }
                         },
                         legend: {
                             labels: {
                                 color: '#e0e0e0',
                                 font: {
-                                    family: 'JetBrains Mono'
+                                    family: 'JetBrains Mono',
+                                    size: window.innerWidth < 768 ? 10 : 12
                                 }
                             }
                         }
@@ -794,11 +895,15 @@
                                 text: 'Flip Number',
                                 color: '#e0e0e0',
                                 font: {
-                                    family: 'JetBrains Mono'
+                                    family: 'JetBrains Mono',
+                                    size: window.innerWidth < 768 ? 10 : 12
                                 }
                             },
                             ticks: {
-                                color: '#e0e0e0'
+                                color: '#e0e0e0',
+                                font: {
+                                    size: window.innerWidth < 768 ? 8 : 10
+                                }
                             },
                             grid: {
                                 color: '#333'
@@ -810,11 +915,15 @@
                                 text: 'Balance ($)',
                                 color: '#e0e0e0',
                                 font: {
-                                    family: 'JetBrains Mono'
+                                    family: 'JetBrains Mono',
+                                    size: window.innerWidth < 768 ? 10 : 12
                                 }
                             },
                             ticks: {
-                                color: '#e0e0e0'
+                                color: '#e0e0e0',
+                                font: {
+                                    size: window.innerWidth < 768 ? 8 : 10
+                                }
                             },
                             grid: {
                                 color: '#333'
@@ -892,6 +1001,81 @@
 
         // Start the timer
         updateTimer();
+
+        hacksButton.addEventListener('click', () => {
+            hacksModal.classList.add('active');
+        });
+
+        hacksClose.addEventListener('click', () => {
+            hacksModal.classList.remove('active');
+        });
+
+        optimalStrategyHack.addEventListener('click', () => {
+            if (!simulationActive) {
+                startOptimalStrategySimulation();
+                optimalStrategyHack.classList.add('active');
+                betButton.disabled = true;
+                betInput.disabled = true;
+            }
+            hacksModal.classList.remove('active');
+        });
+
+        function startOptimalStrategySimulation() {
+            simulationActive = true;
+            simulationInterval = setInterval(() => {
+                if (!gameActive) {
+                    stopSimulation();
+                    return;
+                }
+                
+                const betAmount = balance * 0.2; // 20% of current balance
+                const choice = 'heads'; // Always bet on heads (60% win rate)
+                
+                // Update the bet input to show the optimal bet
+                betInput.value = betAmount.toFixed(2);
+                
+                // Small delay to let user see the bet amount
+                setTimeout(() => {
+                    const startBalance = balance;
+                    const result = flipCoin();
+                    const won = result === choice;
+
+                    updateStats(result);
+
+                    if (won) {
+                        updateBalance(balance + betAmount);
+                    } else {
+                        updateBalance(balance - betAmount);
+                    }
+
+                    balanceHistory.push(balance);
+                    flipHistory.push({
+                        bet: betAmount,
+                        choice: choice,
+                        result: result,
+                        won: won
+                    });
+
+                    addHistoryEntry(betAmount, choice, startBalance, balance);
+
+                    if (balance <= 0) {
+                        stopSimulation();
+                        showEndGameScreen();
+                    }
+                }, 200); // Wait 200ms to show the bet amount
+            }, 500); // Simulate every 500ms (half a second)
+        }
+
+        function stopSimulation() {
+            if (simulationInterval) {
+                clearInterval(simulationInterval);
+                simulationInterval = null;
+            }
+            simulationActive = false;
+            optimalStrategyHack.classList.remove('active');
+            betButton.disabled = false;
+            betInput.disabled = false;
+        }
     </script>
 </body>
 </html>
