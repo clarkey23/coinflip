@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Flip Betting Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .game-section {
+            flex: 2;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .history-section {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .stats {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stats-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            flex: 1;
+            text-align: center;
+        }
+        .stat-box h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .stat-box p {
+            margin: 5px 0;
+            font-size: 1.1em;
+        }
+        .stat-box .percentage {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 1.1em;
+        }
+        .radio-option input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .bet-input {
+            padding: 10px;
+            font-size: 1.1em;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .bet-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .bet-button:hover {
+            opacity: 0.9;
+        }
+        .bet-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9em;
+        }
+        .win {
+            color: #4CAF50;
+        }
+        .loss {
+            color: #f44336;
+        }
+        .timer {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .balance-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .balance-label {
+            font-size: 0.8em;
+            color: #666;
+        }
+        .balance-amount {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+        .balance-change {
+            font-size: 1.2em;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease-out;
+        }
+        .balance-change.win {
+            color: #4CAF50;
+        }
+        .balance-change.loss {
+            color: #f44336;
+        }
+        .balance-change.show {
+            opacity: 1;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .balance-amount.changed {
+            animation: pulse 0.5s ease-in-out;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            border: none;
+            background: none;
+            padding: 5px;
+        }
+        .modal-close:hover {
+            color: #000;
+        }
+        .modal h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .modal p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .modal ul {
+            margin-bottom: 15px;
+            padding-left: 20px;
+        }
+        .modal li {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-section">
+            <div class="timer" id="timer">30:00</div>
+            <div class="stats-container">
+                <div class="stat-box">
+                    <h3>Heads</h3>
+                    <p>Count: <span id="headsCount">0</span></p>
+                    <p class="percentage"><span id="headsPercentage">0</span>%</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Tails</h3>
+                    <p>Count: <span id="tailsCount">0</span></p>
+                    <p class="percentage"><span id="tailsPercentage">0</span>%</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Total Flips</h3>
+                    <p>Count: <span id="totalFlips">0</span></p>
+                </div>
+            </div>
+            <div class="stats">
+                <div class="balance-container">
+                    <div class="balance-label">Current Balance</div>
+                    <div class="balance-amount" id="balance">$25.00</div>
+                    <div class="balance-change" id="balanceChange"></div>
+                </div>
+            </div>
+            <div class="controls">
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="betChoice" value="heads" checked>
+                        Heads (60%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="betChoice" value="tails">
+                        Tails (40%)
+                    </label>
+                </div>
+                <input type="number" class="bet-input" id="betAmount" placeholder="Enter bet amount" min="0.01" step="0.01">
+                <button class="bet-button" id="betButton">Place Bet</button>
+            </div>
+        </div>
+        <div class="history-section">
+            <h2>Betting History</h2>
+            <div id="historyLog"></div>
+        </div>
+    </div>
+    <div class="modal" id="infoModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <h2>Portfolio Management: The Power of Fractional Betting</h2>
+            <p>Welcome to this interactive demonstration of portfolio management principles! This game simulates a scenario where you have an edge (60% chance of winning), but the key is how you manage your bets.</p>
+            
+            <h3>Key Concepts:</h3>
+            <ul>
+                <li><strong>Edge vs. Risk:</strong> Even with a 60% chance of winning, betting too much of your portfolio on a single outcome can lead to ruin.</li>
+                <li><strong>Kelly Criterion:</strong> The optimal bet size is proportional to your edge. With a 60% win rate, the Kelly Criterion suggests betting about 20% of your portfolio.</li>
+                <li><strong>Risk of Ruin:</strong> Betting too large a portion of your portfolio increases the chance of going broke, even with favorable odds.</li>
+            </ul>
+
+            <h3>Game Rules:</h3>
+            <ul>
+                <li>Start with $25</li>
+                <li>Each bet has a 60% chance of winning</li>
+                <li>You can bet any amount up to your current balance</li>
+                <li>Game ends if you go broke or after 30 minutes</li>
+            </ul>
+
+            <h3>Strategy Tips:</h3>
+            <ul>
+                <li>Try different bet sizes to see how they affect your long-term results</li>
+                <li>Notice how smaller bets (10-20% of your balance) tend to be more sustainable</li>
+                <li>Observe how larger bets can lead to quick wins but also quick losses</li>
+            </ul>
+
+            <p>This game demonstrates why professional investors and traders use position sizing and risk management, even when they have an edge in the market.</p>
+        </div>
+    </div>
+    <script>
+        let balance = 25;
+        let timeLeft = 30 * 60; // 30 minutes in seconds
+        let gameActive = true;
+        let headsCount = 0;
+        let tailsCount = 0;
+
+        const balanceDisplay = document.getElementById('balance');
+        const betInput = document.getElementById('betAmount');
+        const betButton = document.getElementById('betButton');
+        const historyLog = document.getElementById('historyLog');
+        const timerDisplay = document.getElementById('timer');
+        const headsCountDisplay = document.getElementById('headsCount');
+        const tailsCountDisplay = document.getElementById('tailsCount');
+        const headsPercentageDisplay = document.getElementById('headsPercentage');
+        const tailsPercentageDisplay = document.getElementById('tailsPercentage');
+        const totalFlipsDisplay = document.getElementById('totalFlips');
+        const modal = document.getElementById('infoModal');
+        const modalClose = document.getElementById('modalClose');
+
+        // Show modal on first load
+        modal.style.display = 'flex';
+
+        // Close modal when clicking the close button
+        modalClose.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        function updateBalance(newBalance) {
+            const oldBalance = balance;
+            balance = newBalance;
+            
+            // Update display with animation
+            const balanceElement = document.getElementById('balance');
+            const changeElement = document.getElementById('balanceChange');
+            
+            // Remove previous animation class
+            balanceElement.classList.remove('changed');
+            
+            // Force reflow
+            void balanceElement.offsetWidth;
+            
+            // Add animation class
+            balanceElement.classList.add('changed');
+            
+            // Update balance text
+            balanceElement.textContent = `$${balance.toFixed(2)}`;
+            
+            // Show balance change
+            const change = balance - oldBalance;
+            if (change !== 0) {
+                changeElement.textContent = `${change > 0 ? '+' : ''}$${change.toFixed(2)}`;
+                changeElement.className = `balance-change ${change > 0 ? 'win' : 'loss'} show`;
+                
+                // Hide the change after animation
+                setTimeout(() => {
+                    changeElement.className = 'balance-change';
+                }, 2000);
+            }
+        }
+
+        function updateStats(result) {
+            if (result === 'heads') {
+                headsCount++;
+            } else {
+                tailsCount++;
+            }
+            
+            const totalFlips = headsCount + tailsCount;
+            const headsPercentage = ((headsCount / totalFlips) * 100).toFixed(1);
+            const tailsPercentage = ((tailsCount / totalFlips) * 100).toFixed(1);
+
+            headsCountDisplay.textContent = headsCount;
+            tailsCountDisplay.textContent = tailsCount;
+            totalFlipsDisplay.textContent = totalFlips;
+            headsPercentageDisplay.textContent = headsPercentage;
+            tailsPercentageDisplay.textContent = tailsPercentage;
+        }
+
+        function addHistoryEntry(bet, choice, startBalance, endBalance) {
+            const entry = document.createElement('div');
+            entry.className = `history-item ${endBalance > startBalance ? 'win' : 'loss'}`;
+            entry.textContent = `Bet: $${bet.toFixed(2)} on ${choice} | Balance: $${startBalance.toFixed(2)} → $${endBalance.toFixed(2)}`;
+            historyLog.insertBefore(entry, historyLog.firstChild);
+        }
+
+        function flipCoin() {
+            return Math.random() < 0.6 ? 'heads' : 'tails';
+        }
+
+        function placeBet() {
+            if (!gameActive) return;
+
+            const betAmount = parseFloat(betInput.value);
+            if (isNaN(betAmount) || betAmount <= 0 || betAmount > balance) {
+                alert('Please enter a valid bet amount!');
+                return;
+            }
+
+            const choice = document.querySelector('input[name="betChoice"]:checked').value;
+            const startBalance = balance;
+            const result = flipCoin();
+            const won = result === choice;
+
+            updateStats(result);
+
+            if (won) {
+                updateBalance(balance + betAmount);
+            } else {
+                updateBalance(balance - betAmount);
+            }
+
+            addHistoryEntry(betAmount, choice, startBalance, balance);
+
+            // Clear the bet input
+            betInput.value = '';
+
+            if (balance <= 0) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            betButton.disabled = true;
+            betInput.disabled = true;
+            document.querySelectorAll('input[name="betChoice"]').forEach(radio => radio.disabled = true);
+            alert(`Game Over! Your final balance is $${balance.toFixed(2)}`);
+        }
+
+        function updateTimer() {
+            if (!gameActive) return;
+
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            if (timeLeft <= 0) {
+                endGame();
+            } else {
+                timeLeft--;
+                setTimeout(updateTimer, 1000);
+            }
+        }
+
+        betButton.addEventListener('click', placeBet);
+        betInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                placeBet();
+            }
+        });
+
+        // Start the timer
+        updateTimer();
+    </script>
+</body>
+</html>
