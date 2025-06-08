@@ -23,6 +23,13 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             line-height: 1.6;
+            overflow-x: hidden;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         .container {
@@ -31,6 +38,8 @@
             max-width: 1200px;
             margin: 0 auto;
             flex-direction: row;
+            width: 100%;
+            padding: 0 10px;
         }
 
         .game-section {
@@ -335,12 +344,19 @@
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
             .container {
                 flex-direction: column;
+                padding: 0;
+                gap: 10px;
             }
             
             .game-section, .history-section, .info-box {
                 width: 100%;
+                padding: 15px;
             }
 
             .stats-container {
@@ -355,6 +371,30 @@
             .modal-content {
                 width: 95%;
                 padding: 20px;
+                margin: 10px;
+            }
+
+            .bet-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .bet-input {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .bet-button {
+                width: 100%;
+            }
+
+            .button-group {
+                width: 100%;
+            }
+
+            .end-game-button {
+                width: 100%;
+                margin-top: 10px;
             }
         }
 
