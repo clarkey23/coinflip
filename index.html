@@ -6,7 +6,7 @@
     <link rel="icon" type="image/png" href="coin-flip-favicon.png">
     <link rel="shortcut icon" type="image/png" href="coin-flip-favicon.png">
     <link rel="apple-touch-icon" href="coin-flip-favicon.png">
-    <title>Coin Flip Betting Game</title>
+    <title>Coinflip - A Portfolio Management Game by Liam Clarke</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -358,9 +358,13 @@
                 gap: 10px;
             }
             
-            .game-section, .history-section, .info-box {
+            .game-section, .history-section, .instructions-screen {
                 width: 100%;
                 padding: 15px;
+            }
+
+            .instructions-card {
+                padding: 24px 20px;
             }
 
             .stats-container {
@@ -412,53 +416,92 @@
             }
         }
 
-        .info-box {
-            background: var(--input-bg);
-            padding: 20px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            margin-bottom: 20px;
-            position: relative;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
+        .instructions-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 48px 24px;
         }
 
-        .info-box.hidden {
+        .instructions-screen.hidden {
             display: none;
         }
 
-        .info-close {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 20px;
-            cursor: pointer;
-            color: var(--text-color);
-            border: none;
-            background: none;
-            padding: 5px;
+        .instructions-card {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 36px 32px;
+            width: 100%;
         }
 
-        .info-close:hover {
+        .instructions-screen h2 {
+            margin: 0 0 24px 0;
             color: var(--accent-color);
-        }
-
-        .info-box h2 {
-            margin: 0 0 15px 0;
-            color: var(--accent-color);
-            font-size: 1.2em;
+            font-size: 1.35em;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
+            font-weight: 700;
+            text-align: center;
         }
 
-        .info-box p {
+        .instructions-screen .intro {
+            margin-bottom: 24px;
+        }
+
+        .instructions-screen .tagline {
+            margin: 0 0 20px 0;
+            font-size: 1em;
+            color: #aaa;
+            line-height: 1.5;
+        }
+
+        .instructions-screen ul {
             margin: 0;
-            line-height: 1.6;
+            padding-left: 20px;
+            line-height: 1.7;
+            color: var(--text-color);
+            font-size: 0.95em;
         }
 
-        .info-box strong {
+        .instructions-screen li {
+            margin-bottom: 8px;
+        }
+
+        .instructions-screen li:last-child {
+            margin-bottom: 0;
+        }
+
+        .instructions-screen strong {
             color: var(--accent-color);
+        }
+
+        .instructions-screen .start-wrap {
+            margin-top: 28px;
+            text-align: center;
+        }
+
+        .start-button {
+            padding: 14px 36px;
+            font-size: 1.05em;
+            background-color: var(--bg-color);
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.2s;
+        }
+
+        .start-button:hover {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
         }
 
         .end-game-screen {
@@ -514,9 +557,24 @@
             padding: 20px;
             border: 1px solid var(--border-color);
             border-radius: 4px;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             width: 100%;
             height: 300px;
+        }
+
+        .chart-explanation {
+            margin: 0 0 24px 0;
+            font-size: 0.9em;
+            color: #999;
+            line-height: 1.5;
+        }
+
+        .play-again-wrap {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 24px;
+            text-align: center;
         }
 
         .end-game-button {
@@ -607,14 +665,25 @@
     </style>
 </head>
 <body>
-    <div class="info-box" id="infoBox">
-        <button class="info-close" id="infoClose">&times;</button>
-        <h2>Portfolio Management Game</h2>
-        <p>You will be flipping a coin for 30 minutes with each flip having a 60% chance of landing on heads. This simulates a trading scenario where you have an edge - the odds are in your favour. The key is how you manage your bet sizes.</p>
-        <p>Your goal is to maximize your $25 starting balance by making smart betting decisions. Each bet on heads has a 60% chance of winning, but even with this advantage, betting too much of your balance on a single flip can still lead to ruin.</p>
-        <p>Try different bet sizes and see how they affect your long-term results. At any time, the END GAME button will allow you to see stats of how your strategy compares to optimal betting strategies.</p>
+    <div class="instructions-screen" id="instructionsScreen">
+        <div class="instructions-card">
+            <h2>Coinflip - A Portfolio Management Game by Liam Clarke</h2>
+            <p class="tagline">You'll be betting on coinflips. You have an edge. See if you can make money.</p>
+            <div class="intro">
+                <ul>
+                    <li><strong>30 minutes</strong> — pick heads or tails, enter a bet, place it. Repeat.</li>
+                    <li>The coin is <strong>biased</strong>: it lands on heads 60% of the time and tails 40%. Win = you gain the bet; lose = you lose it.</li>
+                    <li>Start with <strong>$25</strong>. Bet any amount each flip with the goal of growing the balance.</li>
+                    <li>You can see your results by hitting the <strong>End Game</strong> button at any time.</li>
+                    <li>Game ends when time runs out, you hit End Game, or your balance reaches $0.</li>
+                </ul>
+            </div>
+            <div class="start-wrap">
+                <button class="start-button" id="startButton">Start</button>
+            </div>
+        </div>
     </div>
-    <div class="game-container" id="gameContainer">
+    <div class="game-container hidden" id="gameContainer">
         <div class="container">
             <div class="game-section">
                 <button class="hacks-button" id="hacksButton">Unlock Hacks</button>
@@ -690,6 +759,10 @@
         <div class="chart-container">
             <canvas id="balanceChart"></canvas>
         </div>
+        <p class="chart-explanation">The 10% and 20% lines show how fixed-fraction betting would have done on the same sequence of flips.</p>
+        <div class="play-again-wrap">
+            <button class="start-button" id="playAgainButton">Play Again</button>
+        </div>
     </div>
     <div class="hacks-modal" id="hacksModal">
         <div class="modal-content">
@@ -722,8 +795,9 @@
         const headsPercentageDisplay = document.getElementById('headsPercentage');
         const tailsPercentageDisplay = document.getElementById('tailsPercentage');
         const totalFlipsDisplay = document.getElementById('totalFlips');
-        const infoBox = document.getElementById('infoBox');
-        const infoClose = document.getElementById('infoClose');
+        const instructionsScreen = document.getElementById('instructionsScreen');
+        const startButton = document.getElementById('startButton');
+        const playAgainButton = document.getElementById('playAgainButton');
         const gameContainer = document.getElementById('gameContainer');
         const endGameScreen = document.getElementById('endGameScreen');
         const endGameButton = document.getElementById('endGameButton');
@@ -736,9 +810,40 @@
         const hacksClose = document.getElementById('hacksClose');
         const optimalStrategyHack = document.getElementById('optimalStrategyHack');
 
-        // Close info box when clicking the close button
-        infoClose.addEventListener('click', () => {
-            infoBox.classList.add('hidden');
+        function resetGame() {
+            stopSimulation();
+            balance = 25;
+            timeLeft = 30 * 60;
+            gameActive = true;
+            headsCount = 0;
+            tailsCount = 0;
+            balanceHistory = [25];
+            flipHistory = [];
+            balanceDisplay.textContent = '$25.00';
+            timerDisplay.textContent = '30:00';
+            headsCountDisplay.textContent = '0';
+            tailsCountDisplay.textContent = '0';
+            headsPercentageDisplay.textContent = '0';
+            tailsPercentageDisplay.textContent = '0';
+            totalFlipsDisplay.textContent = '0';
+            historyLog.innerHTML = '';
+            document.getElementById('balanceChange').className = 'balance-change';
+            if (chart) {
+                chart.destroy();
+                chart = null;
+            }
+        }
+
+        startButton.addEventListener('click', () => {
+            instructionsScreen.classList.add('hidden');
+            gameContainer.classList.remove('hidden');
+            updateTimer();
+        });
+
+        playAgainButton.addEventListener('click', () => {
+            resetGame();
+            endGameScreen.classList.remove('active');
+            instructionsScreen.classList.remove('hidden');
         });
 
         function updateBalance(newBalance) {
@@ -792,10 +897,10 @@
             tailsPercentageDisplay.textContent = tailsPercentage;
         }
 
-        function addHistoryEntry(bet, choice, startBalance, endBalance) {
+        function addHistoryEntry(bet, choice, startBalance, endBalance, result) {
             const entry = document.createElement('div');
             entry.className = `history-item ${endBalance > startBalance ? 'win' : 'loss'}`;
-            entry.textContent = `Bet: $${bet.toFixed(2)} on ${choice} | Balance: $${startBalance.toFixed(2)} → $${endBalance.toFixed(2)}`;
+            entry.textContent = `Bet: $${bet.toFixed(2)} on ${choice} | Landed: ${result} | Balance: $${startBalance.toFixed(2)} → $${endBalance.toFixed(2)}`;
             historyLog.insertBefore(entry, historyLog.firstChild);
         }
 
@@ -968,7 +1073,7 @@
                 won: won
             });
 
-            addHistoryEntry(betAmount, choice, startBalance, balance);
+            addHistoryEntry(betAmount, choice, startBalance, balance, result);
 
             // Clear the bet input
             betInput.value = '';
@@ -1001,9 +1106,6 @@
                 placeBet();
             }
         });
-
-        // Start the timer
-        updateTimer();
 
         hacksButton.addEventListener('click', () => {
             hacksModal.classList.add('active');
@@ -1059,7 +1161,7 @@
                         won: won
                     });
 
-                    addHistoryEntry(betAmount, choice, startBalance, balance);
+                    addHistoryEntry(betAmount, choice, startBalance, balance, result);
 
                     if (balance <= 0) {
                         stopSimulation();
