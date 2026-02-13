@@ -2,7 +2,7 @@
 
 ---
 
-I built this after reading *The Missing Billionaires*. The thesis of the book is that fortunes are lost through poor portfolio management — if the descendants of billionaires had managed their money properly, they would dominate the rich lists to this day.
+I built this after reading [*The Missing Billionaires*](https://en.wikipedia.org/wiki/The_Missing_Billionaires). The thesis of the book is that fortunes are lost through poor portfolio management — if the descendants of billionaires had managed their money properly, they would dominate the rich lists to this day.
 
 The author built an identical game on the Elm Wealth website, but the UX didn’t work for me. I wanted to explore the game properly, so I rebuilt it with a few fixes.
 
